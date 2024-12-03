@@ -61,7 +61,7 @@ def main():
     # Create or update the destination records.
     to_create, to_update, to_delete = collection_diff(source_records, dest_records)
 
-    has_pending_changes = (len(to_create) + len(to_update) + len(to_delete)) > 0
+    has_pending_changes = to_create or to_update or to_delete
     if not has_pending_changes:
         print("Records are in sync. Nothing to do ✅.")
         return os.EX_OK
