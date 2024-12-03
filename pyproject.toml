@@ -7,7 +7,7 @@ license = "MPLv2"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-kinto-http = "^11.6.0"
+kinto-http = "^11.7.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.8.1"
