@@ -7,10 +7,10 @@ license = "MPLv2"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-kinto-http = "^11.7.0"
+kinto-http = "^11.7.1"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.8.2"
+ruff = "^0.8.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
