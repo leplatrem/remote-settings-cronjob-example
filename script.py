@@ -1,15 +1,20 @@
 import os
 import sys
-import requests
 
+import requests
+import sentry_sdk
 from kinto_http import Client, KintoException
 from kinto_http.utils import collection_diff
+from sentry_sdk.integrations.gcp import GcpIntegration
+
 
 # Required environment variables
 AUTHORIZATION = os.getenv("AUTHORIZATION", "")
 SERVER = os.getenv("SERVER", "http://localhost:8888/v1")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local").lower()
 IS_DRY_RUN = os.getenv("DRY_RUN", "0") in "1yY"
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+SENTRY_ENV = os.getenv("SENTRY_ENV", ENVIRONMENT)
 
 if ENVIRONMENT not in {"local", "dev", "stage", "prod"}:
     raise ValueError(f"'ENVIRONMENT={ENVIRONMENT}' is not a valid value")
@@ -18,6 +23,7 @@ if ENVIRONMENT not in {"local", "dev", "stage", "prod"}:
 BUCKET = "main-workspace"
 COLLECTION = "fxrelay-allowlist"
 ALLOWLIST_INPUT_URL = os.getenv("ALLOWLIST_INPUT_URL")
+
 
 def fetch_allowlist():
     print(f"📥 Loading new allowlist from {ALLOWLIST_INPUT_URL}")
@@ -30,6 +36,12 @@ def fetch_allowlist():
 
 
 def main():
+    if SENTRY_DSN:
+        # Initialize Sentry for error reporting.
+        sentry_sdk.init(SENTRY_DSN, integrations=[GcpIntegration()], environment=SENTRY_ENV)
+    else:
+        print("⚠️ Sentry is not configured. Set SENTRY_DSN environment variable to enable it.")
+
     client = Client(
         server_url=SERVER,
         auth=AUTHORIZATION,
@@ -68,7 +80,9 @@ def main():
         print("✅ Records are already in sync. Nothing to do.")
         return 0
 
-    print(f"🔧 Applying {len(to_create)} creates, {len(to_update)} updates, {len(to_delete)} deletes...")
+    print(
+        f"🔧 Applying {len(to_create)} creates, {len(to_update)} updates, {len(to_delete)} deletes..."
+    )
     try:
         with client.batch() as batch:
             for record in to_create:
